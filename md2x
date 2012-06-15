@@ -33,8 +33,17 @@ end
 
 input_file_name = ARGV[0]
 
-output_file_name = input_file_name.gsub(/.md$/, ".pdf")
+output_file_name = input_file_name.gsub(/.md$/, "." + theme['target-extension'])
+header_snippet_name = "."+input_file_name+".header"
 
+pandoc_opts = theme["pandoc-opts"];
+pandoc_vars = theme["pandoc-vars"];
+pandoc_opts["output"] = output_file_name
+
+if (theme['header'])
+    File.open(header_snippet_name, "w+") { |f| f << theme['header']}
+    pandoc_opts['include-in-header']=header_snippet_name
+end
 
 
 x = 42
@@ -42,17 +51,6 @@ template = ERB.new <<-EOF
   The value of x is: <%= x %>
 EOF
 puts template.result(binding)
-
-
-pandoc_opts = {
-    "standalone" => true,
-    "self-contained" => true,
-    "output" => output_file_name
-}
-
-pandoc_vars = {
-    "lang" => opts[:lang]
-}
 
 
 pandoc_opts_string = pandoc_opts.map{ |x| x[1]?("--#{x[0]}" + ((x[1]&&x[1]!=true)?" " + x[1]:"")):"" }.join(" ")
