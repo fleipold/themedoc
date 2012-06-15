@@ -1,0 +1,78 @@
+#!/usr/bin/env ruby
+require 'trollop'
+require 'erb'
+require 'yaml'
+
+theme_index=ARGV.index("--theme") || ARGV.index("-t");
+if theme_index
+    if (ARGV.length < theme_index + 2)
+        throw "No theme value provided"
+    end
+    theme_name = ARGV[theme_index + 1 ]
+    home = `(cd; pwd)`
+    theme = YAML.load_file(home.strip+"/.md2x/themes/#{theme_name}/info.yml")
+end
+
+
+opts = Trollop::options do
+    opt :theme, "Theme to be used", :type => String, :short => 't'
+    # opt :filenam, "File to process", :type => String
+    opt :lang, "Language (english | german)", :type => String, :short => 'l', :default => "english"
+    opt :toc, "Table of contents", default: false
+end
+
+Trollop::die :theme, "theme must be specified" if !opts[:theme]
+
+puts theme
+
+puts ARGV
+
+if (ARGV.length == 0)
+    throw "Noe input file specified"
+end
+
+input_file_name = ARGV[0]
+
+output_file_name = input_file_name.gsub(/.md$/, ".pdf")
+
+
+
+x = 42
+template = ERB.new <<-EOF
+  The value of x is: <%= x %>
+EOF
+puts template.result(binding)
+
+
+pandoc_opts = {
+    "standalone" => true,
+    "self-contained" => true,
+    "output" => output_file_name
+}
+
+pandoc_vars = {
+    "lang" => opts[:lang]
+}
+
+
+pandoc_opts_string = pandoc_opts.map{ |x| x[1]?("--#{x[0]}" + ((x[1]&&x[1]!=true)?" " + x[1]:"")):"" }.join(" ")
+pandoc_vars_string = pandoc_vars.map{ |x| "-V #{x[0]}:#{x[1]}"}.join(" ")
+command = "pandoc " + pandoc_opts_string + " " + pandoc_vars_string + " " + input_file_name
+
+output = ""
+IO.popen(command, "w+") do |io|
+   output=io.read
+end
+puts output
+
+
+#pandoc  $INFILE  \
+#       --include-in-header header.tex \
+#        --variable documentclass:scrartcl \
+#        --variable graphics \
+      #  --variable lang:english \
+     #   --latex-engine=xelatex \
+       # --self-contained \
+      #  --number-sections \
+     #   --standalone \
+    #
