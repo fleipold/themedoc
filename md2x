@@ -14,18 +14,20 @@ class Pandoc
     def opts_string()
         @opts.map{ |x|
             if(!x[1])
-                return ""
+                 ""
+            else
+                "--#{x[0]}" + ((x[1]!=true)?" " + x[1]:"")
             end
-            "--#{x[0]}" + ((x[1]!=true)?" " + x[1]:"")
         }.join(" ")
     end
 
     def vars_string()
         @vars.map{ |x|
             if(!x[1])
-                return ""
+                 ""
+            else
+                "-V #{x[0]}" + ((x[1]!=true)?":"+x[1]:"")
             end
-            "-V #{x[0]}" + ((x[1]!=true)?":"+x[1]:"")
         }.join(" ")
     end
 
@@ -62,6 +64,15 @@ class Theme
     def template_parameters
         @map['parameters'].select{ |param| param['target']=="template"}
     end
+
+    def variable_override_parameters
+        @map['parameters'].select{ |param| param['target']=="variable-override"}
+    end
+
+    def option_override_parameters
+        @map['parameters'].select{ |param| param['target']=="option-override"}
+    end
+
 
     def header
         @map['header']
@@ -126,9 +137,39 @@ header_snippet_name = "." + parser.input_file_name() + ".header"
 
 pandoc_opts = theme.pandoc_opts
 pandoc_vars = theme.pandoc_vars
+
+theme.variable_override_parameters
+    .each{|p|
+        val=parser.opts[p['name'].to_sym]
+        if val
+            if p['inverted']
+                pandoc_vars[p['original-name']]=false
+            else
+                pandoc_vars[p['name']]=val
+            end
+        end
+    }
+
+
+puts "before: " + pandoc_opts.to_s
+theme.option_override_parameters
+    .each{|p|
+        val=parser.opts[p['name'].to_sym]
+        puts val
+        if val
+            if p['inverted']
+                puts p['original-name']
+                pandoc_opts[p['original-name']]=false
+            else
+                pandoc_opts[p['name']]=val
+            end
+        end
+    }
+puts "after: " + pandoc_opts.to_s
+
 pandoc_opts["output"] = output_file_name
 
-puts `ln -fs #{parser.theme_path}/resources .resources`
+`ln -fs #{parser.theme_path}/resources .resources`
 
 
 template_parameters = {}
@@ -144,7 +185,6 @@ if (theme.header)
 end
 
 pandoc=Pandoc.new(pandoc_opts, pandoc_vars, parser.input_file_name)
-
 pandoc.run
 
 `rm .resources`
