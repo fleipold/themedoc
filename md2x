@@ -1,24 +1,29 @@
 #!/usr/bin/env ruby
 require 'trollop'
-require 'erb'
 require 'yaml'
+require 'mustache'
 
 theme_index=ARGV.index("--theme") || ARGV.index("-t");
+
 if theme_index
     if (ARGV.length < theme_index + 2)
         throw "No theme value provided"
     end
     theme_name = ARGV[theme_index + 1 ]
     home = `(cd; pwd)`
-    theme = YAML.load_file(home.strip+"/.md2x/themes/#{theme_name}/info.yml")
+    theme_path = home.strip+"/.md2x/themes/#{theme_name}"
+    theme = YAML.load_file(theme_path + "/info.yml")
 end
-
 
 opts = Trollop::options do
     opt :theme, "Theme to be used", :type => String, :short => 't'
     # opt :filenam, "File to process", :type => String
     opt :lang, "Language (english | german)", :type => String, :short => 'l', :default => "english"
     opt :toc, "Table of contents", default: false
+    opt :test_me
+    theme['parameters'].each{|param|
+        opt param['name'].to_sym, param['desc'], :type => param['type'].to_sym
+    }
 end
 
 Trollop::die :theme, "theme must be specified" if !opts[:theme]
@@ -28,7 +33,7 @@ puts theme
 puts ARGV
 
 if (ARGV.length == 0)
-    throw "Noe input file specified"
+    throw "No input file specified"
 end
 
 input_file_name = ARGV[0]
@@ -45,17 +50,36 @@ if (theme['header'])
     pandoc_opts['include-in-header']=header_snippet_name
 end
 
+puts `ln -fs #{theme_path}/resources .resources`
 
-x = 42
-template = ERB.new <<-EOF
-  The value of x is: <%= x %>
+map = { 'x' => 42, 'y' => NIL}
+template = <<-EOF
+  The value of x is: {{x}} lala
+  {{#y}}
+  Hello
+  {{/y}}
 EOF
-puts template.result(binding)
+
+puts Mustache.render(template, map)
 
 
-pandoc_opts_string = pandoc_opts.map{ |x| x[1]?("--#{x[0]}" + ((x[1]&&x[1]!=true)?" " + x[1]:"")):"" }.join(" ")
-pandoc_vars_string = pandoc_vars.map{ |x| "-V #{x[0]}:#{x[1]}"}.join(" ")
+pandoc_opts_string = pandoc_opts.map{ |x|
+    if(!x[1])
+        return ""
+    end
+    "--#{x[0]}" + ((x[1]!=true)?" " + x[1]:"")
+}.join(" ")
+
+pandoc_vars_string = pandoc_vars.map{ |x|
+    if(!x[1])
+        return ""
+    end
+    "-V #{x[0]}" + ((x[1]!=true)?":"+x[1]:"")
+}.join(" ")
+
 command = "pandoc " + pandoc_opts_string + " " + pandoc_vars_string + " " + input_file_name
+
+puts command
 
 output = ""
 IO.popen(command, "w+") do |io|
@@ -63,14 +87,6 @@ IO.popen(command, "w+") do |io|
 end
 puts output
 
+`rm .resources`
+`rm -f #{header_snippet_name}`
 
-#pandoc  $INFILE  \
-#       --include-in-header header.tex \
-#        --variable documentclass:scrartcl \
-#        --variable graphics \
-      #  --variable lang:english \
-     #   --latex-engine=xelatex \
-       # --self-contained \
-      #  --number-sections \
-     #   --standalone \
-    #
