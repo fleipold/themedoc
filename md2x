@@ -3,86 +3,151 @@ require 'trollop'
 require 'yaml'
 require 'mustache'
 
-theme_index=ARGV.index("--theme") || ARGV.index("-t");
+class Pandoc
 
-if theme_index
-    if (ARGV.length < theme_index + 2)
-        throw "No theme value provided"
+    def initialize(opts, vars, input_file_name)
+        @opts=opts;
+        @vars=vars;
+        @input_file_name=input_file_name;
     end
-    theme_name = ARGV[theme_index + 1 ]
-    home = `(cd; pwd)`
-    theme_path = home.strip+"/.md2x/themes/#{theme_name}"
-    theme = YAML.load_file(theme_path + "/info.yml")
+
+    def opts_string()
+        @opts.map{ |x|
+            if(!x[1])
+                return ""
+            end
+            "--#{x[0]}" + ((x[1]!=true)?" " + x[1]:"")
+        }.join(" ")
+    end
+
+    def vars_string()
+        @vars.map{ |x|
+            if(!x[1])
+                return ""
+            end
+            "-V #{x[0]}" + ((x[1]!=true)?":"+x[1]:"")
+        }.join(" ")
+    end
+
+    def run()
+        command = "pandoc " + opts_string() + " " + vars_string() + " " + @input_file_name
+        puts command
+        output = ""
+        IO.popen(command, "w+") do |io|
+           output=io.read
+        end
+        puts output
+    end
+
 end
 
-opts = Trollop::options do
-    opt :theme, "Theme to be used", :type => String, :short => 't'
-    # opt :filenam, "File to process", :type => String
-    opt :toc, "Table of contents", default: false;
-    if (theme)
-        theme['parameters'].each{|param|
-            opt param['name'].to_sym, param['desc'], :type => param['type'].to_sym
-        }
+
+class Theme
+    def initialize(map)
+        @map=map
+    end
+
+    def pandoc_opts
+        @map["pandoc-opts"]
+    end
+
+    def pandoc_vars
+        @map["pandoc-vars"]
+    end
+
+    def target_extension
+        @map['target-extension']
+    end
+
+    def template_parameters
+        @map['parameters'].select{ |param| param['target']=="template"}
+    end
+
+    def header
+        @map['header']
+    end
+
+    def parameters
+        @map['parameters']
+    end
+
+    def to_s
+        @map['description']
+    end
+
+end
+
+class CommandLineParser
+    attr_reader :opts, :theme, :theme_path, :input_file_name
+
+    def parse()
+        theme_index=ARGV.index("--theme") || ARGV.index("-t");
+
+        if theme_index
+            if (ARGV.length < theme_index + 2)
+                throw "No theme value provided"
+            end
+            theme_name = ARGV[theme_index + 1 ]
+            home = `(cd; pwd)`
+            @theme_path = home.strip+"/.md2x/themes/#{theme_name}"
+            @theme = Theme.new(YAML.load_file(theme_path + "/info.yml"))
+        end
+
+        theme = @theme
+
+        @opts = Trollop::options do
+            opt :theme, "Theme to be used", :type => String, :short => 't'
+            if (theme)
+                theme.parameters.each{|param|
+                    opt param['name'].to_sym, param['desc'], :type => param['type'].to_sym
+                }
+            end
+        end
+
+        Trollop::die :theme, "theme must be specified" if !@opts[:theme]
+
+        if (ARGV.length == 0)
+            throw "No input file specified"
+        end
+
+        @input_file_name = ARGV[0]
     end
 end
 
-Trollop::die :theme, "theme must be specified" if !opts[:theme]
 
-puts theme
 
-puts ARGV
+parser = CommandLineParser.new()
+parser.parse()
 
-if (ARGV.length == 0)
-    throw "No input file specified"
-end
+theme = parser.theme
 
-input_file_name = ARGV[0]
+output_file_name = parser.input_file_name().gsub(/.md$/, "." +theme.target_extension)
+header_snippet_name = "." + parser.input_file_name() + ".header"
 
-output_file_name = input_file_name.gsub(/.md$/, "." + theme['target-extension'])
-header_snippet_name = "."+input_file_name+".header"
-
-pandoc_opts = theme["pandoc-opts"];
-pandoc_vars = theme["pandoc-vars"];
+pandoc_opts = theme.pandoc_opts
+pandoc_vars = theme.pandoc_vars
 pandoc_opts["output"] = output_file_name
 
-puts `ln -fs #{theme_path}/resources .resources`
+puts `ln -fs #{parser.theme_path}/resources .resources`
+
+
 template_parameters = {}
+theme.template_parameters
+    .map{|param| param['name']}
+    .each{|p_name| template_parameters[p_name]=parser.opts[p_name.to_sym]}
 
-theme['parameters'].select{ |param| param['target']=="template"}
-    .each{|param| template_parameters[param['name']]=opts[param['name'].to_sym]}
 
-puts template_parameters
-
-if (theme['header'])
-    header = Mustache.render(theme['header'], template_parameters);
+if (theme.header)
+    header = Mustache.render(theme.header, template_parameters);
     File.open(header_snippet_name, "w+") { |f| f << header}
     pandoc_opts['include-in-header']=header_snippet_name
 end
 
-pandoc_opts_string = pandoc_opts.map{ |x|
-    if(!x[1])
-        return ""
-    end
-    "--#{x[0]}" + ((x[1]!=true)?" " + x[1]:"")
-}.join(" ")
+pandoc=Pandoc.new(pandoc_opts, pandoc_vars, parser.input_file_name)
 
-pandoc_vars_string = pandoc_vars.map{ |x|
-    if(!x[1])
-        return ""
-    end
-    "-V #{x[0]}" + ((x[1]!=true)?":"+x[1]:"")
-}.join(" ")
-
-command = "pandoc " + pandoc_opts_string + " " + pandoc_vars_string + " " + input_file_name
-
-puts command
-
-output = ""
-IO.popen(command, "w+") do |io|
-   output=io.read
-end
-puts output
+pandoc.run
 
 `rm .resources`
 `rm -f #{header_snippet_name}`
+
 
