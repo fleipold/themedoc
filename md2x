@@ -18,12 +18,12 @@ end
 opts = Trollop::options do
     opt :theme, "Theme to be used", :type => String, :short => 't'
     # opt :filenam, "File to process", :type => String
-    opt :lang, "Language (english | german)", :type => String, :short => 'l', :default => "english"
-    opt :toc, "Table of contents", default: false
-    opt :test_me
-    theme['parameters'].each{|param|
-        opt param['name'].to_sym, param['desc'], :type => param['type'].to_sym
-    }
+    opt :toc, "Table of contents", default: false;
+    if (theme)
+        theme['parameters'].each{|param|
+            opt param['name'].to_sym, param['desc'], :type => param['type'].to_sym
+        }
+    end
 end
 
 Trollop::die :theme, "theme must be specified" if !opts[:theme]
@@ -45,23 +45,19 @@ pandoc_opts = theme["pandoc-opts"];
 pandoc_vars = theme["pandoc-vars"];
 pandoc_opts["output"] = output_file_name
 
+puts `ln -fs #{theme_path}/resources .resources`
+template_parameters = {}
+
+theme['parameters'].select{ |param| param['target']=="template"}
+    .each{|param| template_parameters[param['name']]=opts[param['name'].to_sym]}
+
+puts template_parameters
+
 if (theme['header'])
-    File.open(header_snippet_name, "w+") { |f| f << theme['header']}
+    header = Mustache.render(theme['header'], template_parameters);
+    File.open(header_snippet_name, "w+") { |f| f << header}
     pandoc_opts['include-in-header']=header_snippet_name
 end
-
-puts `ln -fs #{theme_path}/resources .resources`
-
-map = { 'x' => 42, 'y' => NIL}
-template = <<-EOF
-  The value of x is: {{x}} lala
-  {{#y}}
-  Hello
-  {{/y}}
-EOF
-
-puts Mustache.render(template, map)
-
 
 pandoc_opts_string = pandoc_opts.map{ |x|
     if(!x[1])
