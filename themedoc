@@ -100,7 +100,7 @@ class CommandLineParser
             end
             theme_name = ARGV[theme_index + 1 ]
             home = `(cd; pwd)`
-            @theme_path = home.strip+"/.md2x/themes/#{theme_name}"
+            @theme_path = home.strip+"/.themedoc/#{theme_name}"
             @theme = Theme.new(YAML.load_file(theme_path + "/info.yml"))
         end
 
@@ -108,6 +108,7 @@ class CommandLineParser
 
         @opts = Trollop::options do
             opt :theme, "Theme to be used", :type => String, :short => 't'
+            opt :debug, "Do not remove temp files"
             if (theme)
                 theme.parameters.each{|param|
                     opt param['name'].to_sym, param['desc'], :type => param['type'].to_sym
@@ -172,6 +173,11 @@ end
 
 pandoc=Pandoc.new(pandoc_opts, pandoc_vars, parser.input_file_name)
 pandoc.run
+
+if (parser.opts[:debug])
+    puts ("no cleanup")
+    exit
+end
 
 `rm .resources`
 `rm -f #{header_snippet_name}`
