@@ -125,7 +125,19 @@ class CommandLineParser
     end
 end
 
+def apply_overrides(parameter_definitions, command_line_opts, pandoc_parameters)
+    parameter_definitions.each{|p|
+        val=command_line_opts[p['name'].to_sym]
+        if val
+            if p['inverted']
+                pandoc_parameters[p['original-name']]=false
+            else
+                pandoc_parameters[p['name']]=val
+            end
+        end
+    }
 
+end
 
 parser = CommandLineParser.new()
 parser.parse()
@@ -138,34 +150,9 @@ header_snippet_name = "." + parser.input_file_name() + ".header"
 pandoc_opts = theme.pandoc_opts
 pandoc_vars = theme.pandoc_vars
 
-theme.variable_override_parameters
-    .each{|p|
-        val=parser.opts[p['name'].to_sym]
-        if val
-            if p['inverted']
-                pandoc_vars[p['original-name']]=false
-            else
-                pandoc_vars[p['name']]=val
-            end
-        end
-    }
+apply_overrides(theme.variable_override_parameters, parser.opts, pandoc_vars)
+apply_overrides(theme.option_override_parameters, parser.opts, pandoc_opts)
 
-
-puts "before: " + pandoc_opts.to_s
-theme.option_override_parameters
-    .each{|p|
-        val=parser.opts[p['name'].to_sym]
-        puts val
-        if val
-            if p['inverted']
-                puts p['original-name']
-                pandoc_opts[p['original-name']]=false
-            else
-                pandoc_opts[p['name']]=val
-            end
-        end
-    }
-puts "after: " + pandoc_opts.to_s
 
 pandoc_opts["output"] = output_file_name
 
