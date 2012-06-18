@@ -158,7 +158,6 @@ pandoc_opts["output"] = output_file_name
 
 `ln -fs #{parser.theme_path}/resources .resources`
 
-
 template_parameters = {}
 theme.template_parameters
     .map{|param| param['name']}
