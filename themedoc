@@ -101,7 +101,7 @@ class CommandLineParser
             theme_name = ARGV[theme_index + 1 ]
             home = `(cd; pwd)`
             @theme_path = home.strip+"/.themedoc/#{theme_name}"
-            @theme = Theme.new(YAML.load_file(theme_path + "/info.yml"))
+            @theme = Theme.new(YAML.load_file(theme_path + "/theme.yml"))
         end
 
         theme = @theme

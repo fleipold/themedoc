@@ -1,0 +1,47 @@
+description: Template for formal TWDE reports
+
+target-extension: pdf
+
+pandoc-opts:
+    toc: true
+    standalone: true
+    self-contained: true
+    latex-engine: xelatex
+    number-sections: true
+
+pandoc-vars:
+    lang: english
+    graphics: true
+    documentclass: scrartcl
+
+parameters:
+    - name: title-header
+      type: string
+      target: template
+      desc: Header for the title page
+
+    - name: "no-toc"
+      type: bool
+      target: option-override
+      desc: suppress table of contents
+      original-name: toc
+      inverted: true
+
+    - name: lang
+      type: string
+      desc: language of the document, e.g. english or german
+      target: variable-override
+
+
+header: |
+        {{=<% %>=}}
+        \usepackage{xltxtra,fontspec,xunicode}
+        \titlehead{<%title-header%>}
+        \setmainfont{Garamond}
+        %\setromanfont[Numbers=Uppercase]{Georgia}
+        \KOMAoptions{titlepage=true,abstract=false}
+        \publishers{
+            \Oldincludegraphics[height=18ex]{.resources/logo.png}
+            \vspace{3ex}
+        }
+
