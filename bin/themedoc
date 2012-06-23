@@ -43,6 +43,22 @@ class Pandoc
 
 end
 
+class Installer
+
+    def install_if_needed()
+        home = `(cd; pwd)`.strip
+        dot_folder = "#{home}/.themedoc"
+        if (File.exists?(dot_folder))
+            return;
+        end
+
+        puts("Installing default themes..")
+        `mkdir #{dot_folder}`
+        theme_src=File.join(File.dirname(File.expand_path(__FILE__)), '/../themes')
+        `cp -r #{theme_src}/* #{dot_foldEr}`
+        puts("Done")
+    end
+end
 
 class Theme
     def initialize(map)
@@ -139,6 +155,9 @@ def apply_overrides(parameter_definitions, command_line_opts, pandoc_parameters)
     }
 
 end
+
+installer = Installer.new()
+installer.install_if_needed()
 
 parser = CommandLineParser.new()
 parser.parse()
