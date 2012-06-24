@@ -55,7 +55,7 @@ class Installer
         puts("Installing default themes..")
         `mkdir #{dot_folder}`
         theme_src=File.join(File.dirname(File.expand_path(__FILE__)), '/../themes')
-        `cp -r #{theme_src}/* #{dot_foldEr}`
+        `cp -r #{theme_src}/* #{dot_folder}`
         puts("Done")
     end
 end
