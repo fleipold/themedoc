@@ -1,0 +1,27 @@
+description: Template for formal TWDE reports
+
+target-extension: html
+
+pandoc-opts:
+    toc: true
+    standalone: true
+    self-contained: true
+    number-sections: true
+    css: .resources/default.css
+
+pandoc-vars:
+    lang: english
+
+parameters:
+    - name: "no-toc"
+      type: bool
+      target: option-override
+      desc: suppress table of contents
+      original-name: toc
+      inverted: true
+
+    - name: lang
+      type: string
+      desc: language of the document, e.g. english or german
+      target: variable-override
+
