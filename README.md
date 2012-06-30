@@ -1,6 +1,18 @@
 % themedoc
 % theming pandoc
 
+# Bugs and problems
+
+* Should deal with missing extension and assume markdown
+* Default theme should use pdflatex
+* Should see why it doesn't run rb 1.8
+* list of themes
+* no theme given use default html
+* propagate exit code
+* implement version
+* Message that states output file
+
+
 # Features
 
 * Support different themes for pandoc
@@ -12,6 +24,12 @@
 * Parameterisation via the command line
 
 # Getting started
+
+## Installation
+
+    gem install themedoc
+
+## Usage
 
 To `use themedoc's` default theme use the following incantation to
 create a pdf:
