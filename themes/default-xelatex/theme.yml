@@ -6,13 +6,13 @@ pandoc-opts:
     toc: true
     standalone: true
     self-contained: true
-    latex-engine: pdflatex
+    latex-engine: xelatex
     number-sections: true
 
 pandoc-vars:
     lang: english
-    #graphics: true
-    documentclass: article
+    graphics: true
+    documentclass: scrartcl
 
 parameters:
     - name: title-header
@@ -35,4 +35,13 @@ parameters:
 
 header: |
         {{=<% %>=}}
+        \usepackage{xltxtra,fontspec,xunicode}
+        \titlehead{<%title-header%>}
+        \setmainfont{Garamond}
+        %\setromanfont[Numbers=Uppercase]{Georgia}
+        \KOMAoptions{titlepage=true,abstract=false}
+        \publishers{
+            \Oldincludegraphics[height=18ex]{.resources/logo.png}
+            \vspace{3ex}
+        }
 
