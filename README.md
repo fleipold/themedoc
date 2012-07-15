@@ -3,15 +3,24 @@
 
 # Bugs and problems
 
-* Should deal with missing extension and assume markdown
-* Default theme should use pdflatex
-* Should see why it doesn't run rb 1.8
-* list of themes
-* no theme given use default html
-* propagate exit code
-* implement version
-* Message that states output file
+## Open
 
+* Should see why it doesn't run rb 1.8
+   * Needs mostly testing
+   * Perhaps we need to push some stuff to separate files
+* propagate exit code
+    - don't forget cleanup
+    - propagate pandocs stderr
+* implement version
+* Snippets for before and after body
+
+## Closed
+
+* no theme given use default html
+* Should deal with missing extension and assume markdown input
+* Default theme should use pdflate
+* Message that states output file
+* list of themes
 
 # Features
 

@@ -104,8 +104,29 @@ class Theme
 
 end
 
+
+
 class CommandLineParser
     attr_reader :opts, :theme, :theme_path, :input_file_name
+
+    def initialize
+            home = `(cd; pwd)`
+            @theme_base_path = home.strip+"/.themedoc"
+    end
+
+    def load_theme(name)
+            @theme_path = @theme_base_path + "/" + name
+            @theme = Theme.new(YAML.load_file(theme_path + "/theme.yml"))
+            return @theme
+    end
+
+    def list_themes
+            puts "Available themes"
+            puts "----------------"
+            theme_names = `(cd #{@theme_base_path}; ls)`.split(/\n/)
+            theme_descriptions = theme_names.map{|n| load_theme(n)}
+            puts theme_names.zip(theme_descriptions).map{|t| t[0] + " => " + t[1].to_s}.join("\n")
+    end
 
     def parse()
         theme_index=ARGV.index("--theme") || ARGV.index("-t");
@@ -115,15 +136,21 @@ class CommandLineParser
                 throw "No theme value provided"
             end
             theme_name = ARGV[theme_index + 1 ]
-            home = `(cd; pwd)`
-            @theme_path = home.strip+"/.themedoc/#{theme_name}"
-            @theme = Theme.new(YAML.load_file(theme_path + "/theme.yml"))
+            load_theme(theme_name)
+        end
+
+        default_theme = false;
+        if (!@theme)
+            load_theme("default-html")
+            default_theme = true;
         end
 
         theme = @theme
 
+
         @opts = Trollop::options do
             opt :theme, "Theme to be used", :type => String, :short => 't'
+            opt :list_themes, "List available themes"
             opt :debug, "Do not remove temp files"
             if (theme)
                 theme.parameters.each{|param|
@@ -132,11 +159,19 @@ class CommandLineParser
             end
         end
 
-        Trollop::die :theme, "theme must be specified" if !@opts[:theme]
+        if (@opts[:list_themes])
+            list_themes
+            exit
+        end
+
+        if (default_theme)
+            puts "No theme provided - using default-html"
+        end
 
         if (ARGV.length == 0)
             throw "No input file specified"
         end
+
 
         @input_file_name = ARGV[0]
     end
@@ -164,7 +199,14 @@ parser.parse()
 
 theme = parser.theme
 
-output_file_name = parser.input_file_name().gsub(/.md$/, "." +theme.target_extension)
+if (/\.[^.]*$/ =~ parser.input_file_name())
+    output_file_name = parser.input_file_name().gsub(/\.[^.]*$/, "." +theme.target_extension)
+else
+    output_file_name = parser.input_file_name() + "." + theme.target_extension
+end
+
+puts "Writing output to #{output_file_name}"
+
 header_snippet_name = "." + parser.input_file_name() + ".header"
 
 pandoc_opts = theme.pandoc_opts
@@ -179,8 +221,8 @@ pandoc_opts["output"] = output_file_name
 `ln -fs #{parser.theme_path}/resources .resources`
 
 template_parameters = {}
-theme.template_parameters
-    .map{|param| param['name']}
+theme.template_parameters \
+    .map{|param| param['name']} \
     .each{|p_name| template_parameters[p_name]=parser.opts[p_name.to_sym]}
 
 
