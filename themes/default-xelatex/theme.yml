@@ -1,4 +1,4 @@
-description: Template for formal TWDE reports
+description: Template for pdf reports using xelatex
 
 target-extension: pdf
 
@@ -33,15 +33,22 @@ parameters:
       target: variable-override
 
 
-header: |
-        {{=<% %>=}}
-        \usepackage{xltxtra,fontspec,xunicode}
-        \titlehead{<%title-header%>}
-        \setmainfont{Garamond}
-        %\setromanfont[Numbers=Uppercase]{Georgia}
-        \KOMAoptions{titlepage=true,abstract=false}
-        \publishers{
-            \Oldincludegraphics[height=18ex]{.resources/logo.png}
-            \vspace{3ex}
-        }
+include:
+    in-header: |
+            {{=<% %>=}}
+            \usepackage{xltxtra,fontspec,xunicode}
+            \titlehead{<%title-header%>}
+            \setmainfont{Garamond}
+            %\setromanfont[Numbers=Uppercase]{Georgia}
+            \KOMAoptions{titlepage=true,abstract=false}
+            \publishers{
+                \Oldincludegraphics[height=18ex]{.resources/logo.png}
+                \vspace{3ex}
+            }
+
+    before-body: |
+                 Here the body doth start.
+
+    after-body:  |
+                 The body ends here.
 

@@ -1,4 +1,4 @@
-description: Template for formal TWDE reports
+description: Default template for pdf with table of contents and numbered sections
 
 target-extension: pdf
 
@@ -33,6 +33,7 @@ parameters:
       target: variable-override
 
 
-header: |
-        {{=<% %>=}}
+include:
+    in-header: |
+               {{=<% %>=}}
 

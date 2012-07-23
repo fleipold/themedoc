@@ -12,7 +12,6 @@
     - don't forget cleanup
     - propagate pandocs stderr
 * implement version
-* Snippets for before and after body
 
 ## Closed
 
@@ -21,6 +20,8 @@
 * Default theme should use pdflate
 * Message that states output file
 * list of themes
+* Snippets for before and after body
+
 
 # Features
 

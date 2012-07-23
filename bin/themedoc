@@ -90,8 +90,21 @@ class Theme
     end
 
 
-    def header
-        @map['header']
+    def include(region_name)
+        unless @map['include']
+            return nil
+        end
+        @map['include'][region_name]
+
+    end
+
+
+    def before_body
+        @map['before-body']
+    end
+
+    def after_body
+        @map['after-body']
     end
 
     def parameters
@@ -207,7 +220,6 @@ end
 
 puts "Writing output to #{output_file_name}"
 
-header_snippet_name = "." + parser.input_file_name() + ".header"
 
 pandoc_opts = theme.pandoc_opts
 pandoc_vars = theme.pandoc_vars
@@ -225,12 +237,18 @@ theme.template_parameters \
     .map{|param| param['name']} \
     .each{|p_name| template_parameters[p_name]=parser.opts[p_name.to_sym]}
 
+regions = ["in-header", "before-body", "after-body"]
 
-if (theme.header)
-    header = Mustache.render(theme.header, template_parameters);
-    File.open(header_snippet_name, "w+") { |f| f << header}
-    pandoc_opts['include-in-header']=header_snippet_name
-end
+regions.each{|region_name|
+    snippet_file_name= "." + parser.input_file_name() + "." + region_name
+    if (theme.include(region_name))
+        region_content = Mustache.render(theme.include(region_name), template_parameters);
+        File.open(snippet_file_name, "w+") { |f| f << region_content}
+        pandoc_opts['include-' + region_name]=snippet_file_name
+    end
+}
+
+
 
 pandoc=Pandoc.new(pandoc_opts, pandoc_vars, parser.input_file_name)
 pandoc.run
@@ -241,6 +259,8 @@ if (parser.opts[:debug])
 end
 
 `rm .resources`
-`rm -f #{header_snippet_name}`
-
+regions.each{|region_name|
+    snippet_file_name= "." + parser.input_file_name() + "." + region_name
+    `rm -f #{snippet_file_name}`
+}
 
