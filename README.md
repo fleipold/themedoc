@@ -1,37 +1,7 @@
 % themedoc
 % theming pandoc
 
-# Bugs and problems
 
-## Open
-
-* Should see why it doesn't run rb 1.8
-   * Needs mostly testing
-   * Perhaps we need to push some stuff to separate files
-* propagate exit code
-    - don't forget cleanup
-    - propagate pandocs stderr
-* implement version
-
-## Closed
-
-* no theme given use default html
-* Should deal with missing extension and assume markdown input
-* Default theme should use pdflate
-* Message that states output file
-* list of themes
-* Snippets for before and after body
-
-
-# Features
-
-* Support different themes for pandoc
-* Theme consists of
-    + command line options for pandoc
-    + template variables for pandoc
-    + a snippet inclusion mechanism
-    + bundled resources
-* Parameterisation via the command line
 
 # Getting started
 
@@ -55,7 +25,19 @@ To get help around theme specific parameters go like this:
 
     themedoc --theme default --help
 
+# Features
+
+* Support different themes for pandoc
+* Theme consists of
+    + command line options for pandoc
+    + template variables for pandoc
+    + a snippet inclusion mechanism
+    + bundled resources
+* Parameterisation via the command line
+
+
 # Philosophy
+
 Pandoc is a very powerful and flexible text conversion tool.
 One of its primary usecases is to render pandoc markdown into
 various formats, such as pdf and different flavours of html.
@@ -79,6 +61,28 @@ template variables as well as snippets for the target file
 conveniently bundled into a yaml file. Also it allows to bundle other
 resources into the theme and takes care of making them available
 through the command line.
+
+# Release Notes
+
+## Release 0.2
+
+* If no theme is given themedoc now defaults to `default-html`
+* Doesn't depend on the extension of the input file (no more than `pandoc`)
+* `default` theme now uses pdf-latex
+* Added `default`
+* Writes a message to stdout that states output file
+* `--list-themes` lists the themes available
+* Now we also support snippets to be inserted before and after the body
+
+# TODO
+
+* Should see why it doesn't run rb 1.8
+   * Testing needed
+* propagate exit code
+    - don't forget cleanup
+    - propagate pandocs stderr
+* implement `--version`
+* Make `--list-themes` more robust by checking for files to be directories
 
 
 
