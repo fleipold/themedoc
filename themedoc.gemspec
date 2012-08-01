@@ -3,7 +3,7 @@ Gem::Specification.new do |s|
   s.summary      = 'themedoc is a theming frontend for pandoc'
   s.description  = 'themedoc is a theming frontend for pandoc that allows grouping
                     parameters, extra resources and output snippets into named themes'
-  s.version      = '0.1'
+  s.version      = '0.2'
   s.platform     = Gem::Platform::RUBY
 
   s.files        = ['bin/themedoc']
