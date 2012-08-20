@@ -1,6 +1,8 @@
-% themedoc
-% theming pandoc
+# About
 
+Themedoc adds theming to the fabulous [pandoc](http://johnmacfarlane.net/pandoc/index.html) document converter.
+Themes are represented as yaml files that live in the ~/.themedoc folder and can also be bundled with resources such as images,
+javascripts or css-files.
 
 
 # Getting started
@@ -21,6 +23,7 @@ started on your own theme quickly copy the default theme:
 
     cp -R ~/.themedoc/default ~/.themedoc/mytheme
 
+
 To get help around theme specific parameters go like this:
 
     themedoc --theme default --help
@@ -31,14 +34,12 @@ To get help around theme specific parameters go like this:
 * Theme consists of
     + command line options for pandoc
     + template variables for pandoc
-    + a snippet inclusion mechanism
+    + a snippet inclusion mechanism (that also support templating)
     + bundled resources
 * Parameterisation via the command line
 
-
 # Philosophy
 
-Pandoc is a very powerful and flexible text conversion tool.
 One of its primary usecases is to render pandoc markdown into
 various formats, such as pdf and different flavours of html.
 The output can be customised in various ways:
@@ -84,7 +85,7 @@ through the command line.
     - propagate pandocs stderr
 * implement `--version`
 * Make `--list-themes` more robust by checking for files to be directories
-
+* Port templating to slippers
 
 
 
