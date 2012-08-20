@@ -76,6 +76,7 @@ through the command line.
 
 # TODO
 
+* Streaming from stdin ??
 * Should see why it doesn't run rb 1.8
    * Testing needed
 * propagate exit code
