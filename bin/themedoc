@@ -264,7 +264,7 @@ if (parser.opts[:debug])
     exit
 end
 
-`rm .resources`
+`rm -rf .resources`
 regions.each{|region_name|
     snippet_file_name= make_dot_file(parser.input_file_name() + "." + region_name)
     `rm -f #{snippet_file_name}`
