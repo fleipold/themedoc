@@ -204,6 +204,12 @@ def apply_overrides(parameter_definitions, command_line_opts, pandoc_parameters)
 
 end
 
+def make_dot_file(path)
+    splitted = path.split('/')
+    len = splitted.length
+    return (splitted[0, len -1] << ("." + splitted.last)).join('/')
+end
+
 installer = Installer.new()
 installer.install_if_needed()
 
@@ -240,7 +246,7 @@ theme.template_parameters \
 regions = ["in-header", "before-body", "after-body"]
 
 regions.each{|region_name|
-    snippet_file_name= "." + parser.input_file_name() + "." + region_name
+    snippet_file_name= make_dot_file(parser.input_file_name() + "." + region_name)
     if (theme.include(region_name))
         region_content = Mustache.render(theme.include(region_name), template_parameters);
         File.open(snippet_file_name, "w+") { |f| f << region_content}
@@ -258,9 +264,9 @@ if (parser.opts[:debug])
     exit
 end
 
-`rm .resources`
+`rm -rf .resources`
 regions.each{|region_name|
-    snippet_file_name= "." + parser.input_file_name() + "." + region_name
+    snippet_file_name= make_dot_file(parser.input_file_name() + "." + region_name)
     `rm -f #{snippet_file_name}`
 }
 
